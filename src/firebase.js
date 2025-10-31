@@ -1,6 +1,5 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-
 const firebaseConfig = {
   apiKey: "AIzaSyBc1ieXZEOPpNiCEA1NPopQmR0h08UInw8",
   authDomain: "nexuspick-88b83.firebaseapp.com",
