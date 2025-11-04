@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";  // ✅ 추가
 import { db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
 
-function MovieDetail({ movieId }) {
+function MovieDetail() {
+  const { id } = useParams();  // ✅ URL의 /movie/:id 에서 id 추출
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchMovie() {
       try {
-        const docRef = doc(db, "movies", movieId);
+        const docRef = doc(db, "movies", id);  // ✅ movieId → id
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
@@ -25,7 +27,7 @@ function MovieDetail({ movieId }) {
     }
 
     fetchMovie();
-  }, [movieId]);
+  }, [id]);
 
   if (loading) return <p>로딩 중...</p>;
   if (!movie) return <p>영화 데이터를 불러올 수 없습니다.</p>;
