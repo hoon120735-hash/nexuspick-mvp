@@ -1,91 +1,138 @@
-import React, { useState, useEffect } from "react";
-import { db } from "../firebase";
-import { collection, getDocs } from "firebase/firestore";
+import React, { useState } from "react";
 
 function MyPage() {
-  const [ownedMovies, setOwnedMovies] = useState([]);
-  const [watchHistory, setWatchHistory] = useState([]);
-  const [points, setPoints] = useState(1200); // 💰 기본 포인트 예시값
+  const [showModal, setShowModal] = useState(false);
+  const [selectedAmount, setSelectedAmount] = useState(null);
+  const [points, setPoints] = useState(0);
 
-  useEffect(() => {
-    // 🔹 Firestore에서 샘플 데이터 불러오기 (원하면 사용자별로 변경 가능)
-    async function fetchData() {
-      const ownedCol = collection(db, "ownedMovies");
-      const historyCol = collection(db, "watchHistory");
-
-      const [ownedSnap, historySnap] = await Promise.all([
-        getDocs(ownedCol),
-        getDocs(historyCol),
-      ]);
-
-      setOwnedMovies(ownedSnap.docs.map((d) => d.data()));
-      setWatchHistory(historySnap.docs.map((d) => d.data()));
+  // ✅ 결제 완료 시 포인트 반영
+  const handlePayment = () => {
+    if (!selectedAmount) {
+      alert("충전할 금액을 선택해주세요!");
+      return;
     }
 
-    fetchData();
-  }, []);
-
-  const handleChargePoints = () => {
-    const added = 5000; // 💳 예시 충전 금액
-    setPoints(points + added);
-    alert(`포인트 ${added}점이 충전되었습니다!`);
+    setPoints(points + selectedAmount);
+    setShowModal(false);
+    alert(`${selectedAmount}P가 충전되었습니다!`);
   };
 
   return (
-    <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
+    <div style={{ padding: "20px" }}>
       <h2>👤 내 정보</h2>
+      <p>보유 포인트: <strong>{points.toLocaleString()}P</strong></p>
+      <p>소장한 영화: 아직 없습니다</p>
 
-      <div
+      {/* 💳 포인트 충전 버튼 */}
+      <button
+        onClick={() => setShowModal(true)}
         style={{
-          background: "#f9fafb",
-          borderRadius: "8px",
-          padding: "16px",
-          marginBottom: "20px",
+          backgroundColor: "#4f46e5",
+          color: "white",
+          border: "none",
+          padding: "8px 16px",
+          borderRadius: "6px",
+          cursor: "pointer",
+          marginTop: "10px",
         }}
       >
-        <h3>💰 보유 포인트: {points.toLocaleString()} P</h3>
-        <button
-          onClick={handleChargePoints}
+        💳 포인트 충전
+      </button>
+
+      {/* 💰 결제 모달창 */}
+      {showModal && (
+        <div
           style={{
-            backgroundColor: "#4f46e5",
-            color: "white",
-            padding: "8px 16px",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0,0,0,0.4)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 999,
           }}
+          onClick={() => setShowModal(false)}
         >
-          🔋 포인트 충전
-        </button>
-      </div>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: "white",
+              borderRadius: "12px",
+              padding: "24px",
+              width: "320px",
+              textAlign: "center",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+            }}
+          >
+            <h3>💰 포인트 충전</h3>
+            <p style={{ marginBottom: "16px", color: "#555" }}>
+              충전할 금액을 선택하세요
+            </p>
 
-      <div>
-        <h3>🎞 소장한 영화</h3>
-        {ownedMovies.length === 0 ? (
-          <p>소장한 영화가 없습니다.</p>
-        ) : (
-          <ul>
-            {ownedMovies.map((m, i) => (
-              <li key={i}>{m.title}</li>
-            ))}
-          </ul>
-        )}
-      </div>
+            {/* 금액 선택 버튼 */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px",
+                marginBottom: "16px",
+              }}
+            >
+              {[1000, 5000, 10000, 20000].map((amount) => (
+                <button
+                  key={amount}
+                  onClick={() => setSelectedAmount(amount)}
+                  style={{
+                    padding: "10px",
+                    borderRadius: "6px",
+                    border:
+                      selectedAmount === amount
+                        ? "2px solid #4f46e5"
+                        : "1px solid #ccc",
+                    backgroundColor:
+                      selectedAmount === amount ? "#e0e7ff" : "white",
+                    cursor: "pointer",
+                  }}
+                >
+                  {amount.toLocaleString()}P
+                </button>
+              ))}
+            </div>
 
-      <div style={{ marginTop: "20px" }}>
-        <h3>📺 시청 기록</h3>
-        {watchHistory.length === 0 ? (
-          <p>시청 기록이 없습니다.</p>
-        ) : (
-          <ul>
-            {watchHistory.map((m, i) => (
-              <li key={i}>
-                {m.title} ({m.dateWatched})
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+            {/* 결제 및 취소 버튼 */}
+            <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+              <button
+                onClick={handlePayment}
+                style={{
+                  backgroundColor: "#4f46e5",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 16px",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                }}
+              >
+                결제하기
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                style={{
+                  backgroundColor: "#e5e7eb",
+                  border: "none",
+                  padding: "8px 16px",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                }}
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
