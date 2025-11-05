@@ -3,6 +3,7 @@ import Home from "./components/Home";
 import Search from "./components/Search";
 import MovieDetail from "./components/MovieDetail";
 import Login from "./components/Login";
+import MyPage from "./components/MyPage"; // ✅ 내 정보 페이지 import
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
 // ✅ 상단 네비게이션바 컴포넌트
@@ -41,7 +42,7 @@ function Navbar() {
         🎬 NexusPick
       </h1>
 
-      {/* 🔍 오른쪽 검색창 (Enter 입력으로 검색 실행) */}
+      {/* 🔍 검색창 */}
       <input
         type="text"
         placeholder="감독 또는 영화 제목 검색"
@@ -55,6 +56,21 @@ function Navbar() {
           width: "220px",
         }}
       />
+
+      {/* 👤 내 정보 페이지 버튼 */}
+      <button
+        onClick={() => navigate("/mypage")}
+        style={{
+          backgroundColor: "#4f46e5",
+          color: "white",
+          border: "none",
+          padding: "8px 16px",
+          borderRadius: "6px",
+          cursor: "pointer",
+        }}
+      >
+        👤 내 정보
+      </button>
     </div>
   );
 }
@@ -75,6 +91,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/search" element={<Search />} />
               <Route path="/movie/:id" element={<MovieDetail />} />
+              <Route path="/mypage" element={<MyPage />} /> {/* ✅ 내 정보 페이지 추가 */}
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </div>
