@@ -5,9 +5,18 @@ import MovieDetail from "./components/MovieDetail";
 import Login from "./components/Login";
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
-// 상단 네비게이션바 컴포넌트 추가 ✅
-function Navbar({ onLogout }) {
+// ✅ 상단 네비게이션바 컴포넌트
+function Navbar() {
   const navigate = useNavigate();
+  const [searchText, setSearchText] = useState("");
+
+  // Enter 키로 검색 기능
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && searchText.trim()) {
+      navigate(`/search?query=${encodeURIComponent(searchText.trim())}`);
+      setSearchText("");
+    }
+  };
 
   return (
     <div
@@ -20,7 +29,7 @@ function Navbar({ onLogout }) {
         borderBottom: "1px solid #e5e7eb",
       }}
     >
-      {/* 로고 클릭 시 홈으로 이동 */}
+      {/* 🎬 로고 클릭 시 홈으로 이동 */}
       <h1
         onClick={() => navigate("/")}
         style={{
@@ -32,24 +41,25 @@ function Navbar({ onLogout }) {
         🎬 NexusPick
       </h1>
 
-      {/* 검색창을 오른쪽으로 배치 */}
-      <button
-        onClick={() => navigate("/search")}
+      {/* 🔍 오른쪽 검색창 (Enter 입력으로 검색 실행) */}
+      <input
+        type="text"
+        placeholder="감독 또는 영화 제목 검색"
+        value={searchText}
+        onChange={(e) => setSearchText(e.target.value)}
+        onKeyDown={handleKeyDown}
         style={{
-          backgroundColor: "#4f46e5",
-          color: "white",
-          border: "none",
-          padding: "8px 12px",
+          border: "1px solid #ccc",
           borderRadius: "6px",
-          cursor: "pointer",
+          padding: "8px 12px",
+          width: "220px",
         }}
-      >
-        🔍 검색
-      </button>
+      />
     </div>
   );
 }
 
+// ✅ 메인 앱
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -59,9 +69,7 @@ function App() {
         <Login onLogin={() => setIsLoggedIn(true)} />
       ) : (
         <div style={{ fontFamily: "sans-serif" }}>
-          {/* ✅ 상단바 추가 */}
           <Navbar />
-
           <div style={{ padding: "20px" }}>
             <Routes>
               <Route path="/" element={<Home />} />
