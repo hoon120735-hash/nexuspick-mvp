@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, or } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 function Home() {
@@ -23,21 +23,32 @@ function Home() {
     setLoading(false);
   };
 
-  // 🔹 검색 기능
+  // 🔹 제목 또는 감독으로 검색
   const handleSearch = async () => {
     if (!searchText.trim()) {
       fetchAllMovies();
       return;
     }
+
     setSearching(true);
     try {
       const moviesRef = collection(db, "movies");
-      const q = query(moviesRef, where("title", "==", searchText));
+
+      // 🔸 Firestore 9.22 이상부터 `or` 조건 지원
+      const q = query(
+        moviesRef,
+        or(
+          where("title", "==", searchText),
+          where("director", "==", searchText)
+        )
+      );
+
       const querySnapshot = await getDocs(q);
       const resultList = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
+
       setMovies(resultList);
     } catch (error) {
       console.error("검색 오류:", error);
@@ -54,7 +65,7 @@ function Home() {
 
   return (
     <div style={{ padding: "20px" }}>
-      {/* 🔹 상단 영역 (로고 + 검색창 오른쪽 정렬) */}
+      {/* 상단 영역: 로고 + 검색창 */}
       <div
         style={{
           display: "flex",
@@ -78,13 +89,13 @@ function Home() {
           🎬 NexusPick MVP
         </h1>
 
-        {/* 🔹 검색창 오른쪽 상단 */}
+        {/* 🔹 검색창 */}
         <div style={{ display: "flex", gap: "8px" }}>
           <input
             type="text"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-            placeholder="제목으로 검색"
+            placeholder="제목 또는 감독으로 검색"
             style={{
               border: "1px solid #ccc",
               borderRadius: "4px",
@@ -108,7 +119,7 @@ function Home() {
         </div>
       </div>
 
-      {/* 🔹 영화 리스트 */}
+      {/* 영화 리스트 */}
       <h2 style={{ marginBottom: "16px" }}>🎞 인기 영화 리스트</h2>
       {movies.length === 0 ? (
         <p>검색 결과가 없습니다 😢</p>
