@@ -29,22 +29,15 @@ function Search() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>🔍 콘텐츠 검색</h2>
-      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-        <input
-          value={text}
-          onChange={e => setText(e.target.value)}
-          placeholder="감독 이름으로 검색"
-          style={{ border: "1px solid #ccc", borderRadius: "4px", padding: "8px", width: "250px" }}
-        />
-        <button
-          onClick={handleSearch}
-          style={{ backgroundColor: "#4f46e5", color: "white", padding: "8px 12px", borderRadius: "4px" }}
-        >
-          검색
-        </button>
-      </div>
+<div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+  <input
+    value={text}
+    onChange={e => setText(e.target.value)}
+    onKeyDown={(e) => e.key === "Enter" && handleSearch()} // ✅ 엔터로 검색 가능
+    placeholder="감독 또는 영화 제목으로 검색"
+    style={{ border: "1px solid #ccc", borderRadius: "4px", padding: "8px", width: "250px" }}
+  />
+</div>
 
       {loading ? (
         <p>검색 중...</p>
