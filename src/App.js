@@ -5,6 +5,7 @@ import MovieDetail from "./components/MovieDetail";
 import Login from "./components/Login";
 import MyPage from "./components/MyPage"; // ✅ 마이페이지 import
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import MyPage from "./components/MyPage";
 
 // ✅ 상단 네비게이션바 컴포넌트
 function Navbar({ username }) { // ← props로 아이디 전달
@@ -100,6 +101,7 @@ function App() {
               <Route path="/movie/:id" element={<MovieDetail />} />
               <Route path="/mypage" element={<MyPage username={username} />} /> {/* ✅ 전달 */}
               <Route path="*" element={<Navigate to="/" />} />
+              <Route path="/mypage" element={<MyPage />} />
             </Routes>
           </div>
         </div>
