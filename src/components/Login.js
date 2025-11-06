@@ -5,7 +5,7 @@ function Login({ onLogin }) {
   const [selectedInterests, setSelectedInterests] = useState([]);
   const [loginMethod, setLoginMethod] = useState(null);
 
-  const interests = ["K-POP", "아름다움", "음식", "전통", "쇼핑"];
+  const interests = ["액션", "코미디", "로맨스", "공포", "드라마"];
 
   const toggleInterest = (interest) => {
     setSelectedInterests((prev) =>
