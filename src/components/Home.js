@@ -11,6 +11,7 @@ function Home({ username }) { // ✅ username 받기 추가
 
   const navigate = useNavigate();
 
+  // 🔹 전체 영화 불러오기
   const fetchAllMovies = async () => {
     const movieCol = collection(db, "movies");
     const movieSnapshot = await getDocs(movieCol);
@@ -30,13 +31,14 @@ function Home({ username }) { // ✅ username 받기 추가
 
   return (
     <div style={{ padding: "20px" }}>
-      {/* ✅ 로그인한 사용자 환영 메시지 추가 */}
+      {/* ✅ 로그인한 사용자 환영 메시지 */}
       {username && (
         <h2 style={{ marginBottom: "20px", color: "#4f46e5" }}>
           {username}님, 넥서스픽에 오신 걸 환영합니다 👋
         </h2>
       )}
 
+      {/* 🎞 영화 리스트 */}
       <h2 style={{ marginBottom: "16px" }}>🎞 인기 영화 리스트</h2>
       {movies.length === 0 ? (
         <p>등록된 영화가 없습니다 😢</p>
