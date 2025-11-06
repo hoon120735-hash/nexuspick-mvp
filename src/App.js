@@ -5,13 +5,13 @@ import MovieDetail from "./components/MovieDetail";
 import Login from "./components/Login";
 import MyPage from "./components/MyPage"; // ✅ 마이페이지 import
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import MyPage from "./components/MyPage";
 
 // ✅ 상단 네비게이션바 컴포넌트
-function Navbar({ username }) { // ← props로 아이디 전달
+function Navbar({ username }) {
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
 
+  // Enter 키로 검색 기능
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && searchText.trim()) {
       navigate(`/search?query=${encodeURIComponent(searchText.trim())}`);
@@ -42,8 +42,9 @@ function Navbar({ username }) { // ← props로 아이디 전달
         🎬 NexusPick
       </h1>
 
+      {/* 오른쪽 영역 (로그인 정보 + 검색창 + 내 정보 버튼) */}
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        {/* 오른쪽 상단에 로그인한 사용자 이름 표시 */}
+        {/* 로그인한 사용자 이름 표시 */}
         {username && <span style={{ fontWeight: "bold" }}>{username}님 👋</span>}
 
         <input
@@ -59,6 +60,7 @@ function Navbar({ username }) { // ← props로 아이디 전달
             width: "220px",
           }}
         />
+
         <button
           onClick={() => navigate("/mypage")}
           style={{
@@ -93,15 +95,25 @@ function App() {
         />
       ) : (
         <div style={{ fontFamily: "sans-serif" }}>
-          <Navbar username={username} /> {/* ✅ 아이디 전달 */}
+          {/* ✅ 네비게이션바에서 로그인한 아이디 표시 */}
+          <Navbar username={username} />
+
           <div style={{ padding: "20px" }}>
             <Routes>
-              <Route path="/" element={<Home username={username} />} /> {/* ✅ 전달 */}
+              {/* 홈 */}
+              <Route path="/" element={<Home username={username} />} />
+
+              {/* 검색 */}
               <Route path="/search" element={<Search />} />
+
+              {/* 영화 상세 */}
               <Route path="/movie/:id" element={<MovieDetail />} />
-              <Route path="/mypage" element={<MyPage username={username} />} /> {/* ✅ 전달 */}
+
+              {/* 내 정보 페이지 */}
+              <Route path="/mypage" element={<MyPage username={username} />} />
+
+              {/* 잘못된 경로는 홈으로 리다이렉트 */}
               <Route path="*" element={<Navigate to="/" />} />
-              <Route path="/mypage" element={<MyPage />} />
             </Routes>
           </div>
         </div>
