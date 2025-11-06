@@ -3,15 +3,14 @@ import Home from "./components/Home";
 import Search from "./components/Search";
 import MovieDetail from "./components/MovieDetail";
 import Login from "./components/Login";
-import MyPage from "./components/MyPage"; // ✅ 내 정보 페이지 import
+import MyPage from "./components/MyPage"; // ✅ 마이페이지 import
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
 // ✅ 상단 네비게이션바 컴포넌트
-function Navbar() {
+function Navbar({ username }) { // ← props로 아이디 전달
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
 
-  // Enter 키로 검색 기능
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && searchText.trim()) {
       navigate(`/search?query=${encodeURIComponent(searchText.trim())}`);
@@ -42,35 +41,37 @@ function Navbar() {
         🎬 NexusPick
       </h1>
 
-      {/* 🔍 검색창 */}
-      <input
-        type="text"
-        placeholder="감독 또는 영화 제목 검색"
-        value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
-        onKeyDown={handleKeyDown}
-        style={{
-          border: "1px solid #ccc",
-          borderRadius: "6px",
-          padding: "8px 12px",
-          width: "220px",
-        }}
-      />
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        {/* 오른쪽 상단에 로그인한 사용자 이름 표시 */}
+        {username && <span style={{ fontWeight: "bold" }}>{username}님 👋</span>}
 
-      {/* 👤 내 정보 페이지 버튼 */}
-      <button
-        onClick={() => navigate("/mypage")}
-        style={{
-          backgroundColor: "#4f46e5",
-          color: "white",
-          border: "none",
-          padding: "8px 16px",
-          borderRadius: "6px",
-          cursor: "pointer",
-        }}
-      >
-        👤 내 정보
-      </button>
+        <input
+          type="text"
+          placeholder="감독 또는 영화 제목 검색"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          style={{
+            border: "1px solid #ccc",
+            borderRadius: "6px",
+            padding: "8px 12px",
+            width: "220px",
+          }}
+        />
+        <button
+          onClick={() => navigate("/mypage")}
+          style={{
+            backgroundColor: "#4f46e5",
+            color: "white",
+            border: "none",
+            padding: "8px 12px",
+            borderRadius: "6px",
+            cursor: "pointer",
+          }}
+        >
+          내 정보
+        </button>
+      </div>
     </div>
   );
 }
@@ -78,20 +79,26 @@ function Navbar() {
 // ✅ 메인 앱
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState(""); // ✅ 로그인한 아이디 저장
 
   return (
     <Router>
       {!isLoggedIn ? (
-        <Login onLogin={() => setIsLoggedIn(true)} />
+        <Login
+          onLogin={(id) => {
+            setUsername(id); // ✅ 로그인 시 아이디 저장
+            setIsLoggedIn(true);
+          }}
+        />
       ) : (
         <div style={{ fontFamily: "sans-serif" }}>
-          <Navbar />
+          <Navbar username={username} /> {/* ✅ 아이디 전달 */}
           <div style={{ padding: "20px" }}>
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<Home username={username} />} /> {/* ✅ 전달 */}
               <Route path="/search" element={<Search />} />
               <Route path="/movie/:id" element={<MovieDetail />} />
-              <Route path="/mypage" element={<MyPage />} /> {/* ✅ 내 정보 페이지 추가 */}
+              <Route path="/mypage" element={<MyPage username={username} />} /> {/* ✅ 전달 */}
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </div>
