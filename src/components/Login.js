@@ -1,190 +1,118 @@
+// ✅ src/components/Login.js
 import React, { useState } from "react";
 
 function Login({ onLogin }) {
-  const [language, setLanguage] = useState("한국어");
-  const [interests, setInterests] = useState([]);
+  const [language, setLanguage] = useState("English");
+  const [loginType, setLoginType] = useState("");
+  const [selectedInterests, setSelectedInterests] = useState([]);
+
+  const interests = ["K-POP", "Beauty", "Food", "Tradition", "Shopping"];
 
   const toggleInterest = (item) => {
-    setInterests((prev) =>
-      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
+    setSelectedInterests((prev) =>
+      prev.includes(item)
+        ? prev.filter((i) => i !== item)
+        : [...prev, item]
     );
   };
 
+  const handleStart = () => {
+    if (!loginType) {
+      alert("로그인 방식을 선택해주세요!");
+      return;
+    }
+    console.log("🌐 언어:", language);
+    console.log("🔐 로그인 방식:", loginType);
+    console.log("🎯 관심사:", selectedInterests);
+    onLogin(); // ✅ 기존 로그인 프로세스 실행
+  };
+
   return (
-    <div
-      style={{
-        fontFamily: "sans-serif",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        backgroundColor: "#f9fafb",
-      }}
-    >
-      {/* 로고 & 제목 */}
-      <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "#4f46e5" }}>
-        🎬 NexusPick
-      </h1>
-      <p style={{ marginTop: "4px", color: "#6b7280" }}>
-        Discover and Save Your Favorite Movies
-      </p>
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-white to-gray-50 text-gray-800 font-sans">
+      <h1 className="text-4xl font-extrabold text-indigo-600 mb-2">🎬 NexusPick</h1>
+      <p className="text-gray-500 mb-8">Connect Your Movie Taste</p>
 
-      {/* 로그인 카드 */}
-      <div
-        style={{
-          backgroundColor: "white",
-          marginTop: "30px",
-          borderRadius: "16px",
-          padding: "30px",
-          width: "350px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-        }}
-      >
-        {/* 언어 선택 */}
-        <div style={{ marginBottom: "20px" }}>
-          <label style={{ fontWeight: "600", display: "block", marginBottom: "8px" }}>
-            언어 선택 / Language
-          </label>
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "8px",
-              border: "1px solid #d1d5db",
-              fontSize: "14px",
-            }}
-          >
-            <option>한국어</option>
-            <option>English</option>
-            <option>日本語</option>
-            <option>中文</option>
-          </select>
-        </div>
-
-        {/* 소셜 로그인 버튼들 */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          <button
-            style={{
-              backgroundColor: "white",
-              border: "1px solid #d1d5db",
-              borderRadius: "8px",
-              padding: "10px",
-              cursor: "pointer",
-              fontSize: "15px",
-            }}
-          >
-            🔍 Google로 시작하기
-          </button>
-
-          <button
-            style={{
-              backgroundColor: "white",
-              border: "1px solid #d1d5db",
-              borderRadius: "8px",
-              padding: "10px",
-              cursor: "pointer",
-              fontSize: "15px",
-            }}
-          >
-            🍎 Apple로 시작하기
-          </button>
-
-          <button
-            style={{
-              border: "2px solid #4f46e5",
-              borderRadius: "8px",
-              padding: "10px",
-              color: "#4f46e5",
-              fontWeight: "600",
-              backgroundColor: "white",
-              cursor: "pointer",
-              fontSize: "15px",
-            }}
-            onClick={onLogin}
-          >
-            🎫 일반 로그인
-          </button>
-        </div>
-
-        {/* 관심사 선택 */}
-        <div style={{ marginTop: "25px" }}>
-          <p style={{ fontWeight: "600", marginBottom: "10px" }}>
-            관심사를 선택해주세요
-          </p>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "8px",
-            }}
-          >
-            {["액션", "로맨스", "코미디", "SF", "공포", "드라마"].map((item) => (
-              <button
-                key={item}
-                onClick={() => toggleInterest(item)}
-                style={{
-                  borderRadius: "20px",
-                  border: interests.includes(item)
-                    ? "2px solid #4f46e5"
-                    : "1px solid #d1d5db",
-                  backgroundColor: interests.includes(item)
-                    ? "#e0e7ff"
-                    : "white",
-                  padding: "6px 14px",
-                  cursor: "pointer",
-                }}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 시작하기 버튼 */}
-        <button
-          onClick={onLogin}
-          style={{
-            marginTop: "30px",
-            width: "100%",
-            padding: "12px",
-            borderRadius: "10px",
-            border: "none",
-            background: "linear-gradient(to right, #6366f1, #818cf8)",
-            color: "white",
-            fontWeight: "bold",
-            fontSize: "16px",
-            cursor: "pointer",
-          }}
+      {/* 언어 선택 */}
+      <div className="mb-6 w-72">
+        <label className="block text-sm mb-2 font-medium">언어 선택 / Language</label>
+        <select
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
         >
-          시작하기
+          <option>English</option>
+          <option>Korean</option>
+          <option>Japanese</option>
+        </select>
+      </div>
+
+      {/* 소셜 로그인 */}
+      <div className="w-72 space-y-3 mb-6">
+        <button
+          onClick={() => setLoginType("google")}
+          className={`w-full border-2 rounded-lg py-2 text-sm flex items-center justify-center gap-2 ${
+            loginType === "google"
+              ? "border-indigo-500 bg-indigo-50"
+              : "border-gray-300 hover:border-indigo-300"
+          }`}
+        >
+          🔍 Google로 시작하기
+        </button>
+
+        <button
+          onClick={() => setLoginType("apple")}
+          className={`w-full border-2 rounded-lg py-2 text-sm flex items-center justify-center gap-2 ${
+            loginType === "apple"
+              ? "border-indigo-500 bg-indigo-50"
+              : "border-gray-300 hover:border-indigo-300"
+          }`}
+        >
+          🍎 Apple로 시작하기
+        </button>
+
+        <button
+          onClick={() => setLoginType("normal")}
+          className={`w-full border-2 rounded-lg py-2 text-sm flex items-center justify-center gap-2 ${
+            loginType === "normal"
+              ? "border-indigo-500 bg-indigo-50"
+              : "border-gray-300 hover:border-indigo-300"
+          }`}
+        >
+          💻 일반 로그인
         </button>
       </div>
 
-      {/* 하단 네비게이션 바 */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: 0,
-          width: "100%",
-          backgroundColor: "white",
-          borderTop: "1px solid #e5e7eb",
-          display: "flex",
-          justifyContent: "space-around",
-          padding: "10px 0",
-        }}
-      >
-        <span>🏠 Home</span>
-        <span>🔍 Explore</span>
-        <span>🎬 Movies</span>
-        <span>💳 Pass</span>
-        <span>⚙️ More</span>
+      {/* 관심사 선택 */}
+      <div className="w-72 mb-6">
+        <p className="font-medium text-sm mb-2">관심사를 선택해주세요</p>
+        <div className="flex flex-wrap gap-2">
+          {interests.map((item) => (
+            <button
+              key={item}
+              onClick={() => toggleInterest(item)}
+              className={`px-3 py-1 text-sm rounded-full border transition ${
+                selectedInterests.includes(item)
+                  ? "bg-indigo-500 text-white border-indigo-500"
+                  : "border-gray-300 hover:border-indigo-400"
+              }`}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {/* 시작하기 버튼 */}
+      <button
+        onClick={handleStart}
+        className="bg-gradient-to-r from-indigo-500 to-blue-400 text-white px-20 py-3 rounded-xl shadow hover:scale-105 transition"
+      >
+        시작하기
+      </button>
+
+      <p className="text-xs text-gray-400 mt-6">© 2025 NexusPick. All rights reserved.</p>
     </div>
   );
 }
 
 export default Login;
-
