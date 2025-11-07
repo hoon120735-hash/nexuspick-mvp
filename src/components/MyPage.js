@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 function MyPage({ username }) {
   const [userData, setUserData] = useState(null);
@@ -10,97 +10,95 @@ function MyPage({ username }) {
 
   // ✅ Firestore에서 사용자 데이터 불러오기
   useEffect(() => {
-    async function fetchUserData() {
+    const fetchUserData = async () => {
       try {
+        if (!username) return;
+
         const userRef = doc(db, "users", username);
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
           setUserData(userSnap.data());
         } else {
-          console.warn("해당 사용자가 Firestore에 없습니다.");
+          // 🔹 유저 데이터가 없으면 새로 생성
+          await updateDoc(userRef, {
+            points: 0,
+            ownedMovies: [],
+          });
+          setUserData({ points: 0, ownedMovies: [] });
         }
       } catch (error) {
-        console.error("유저 정보 불러오기 실패:", error);
+        console.error("유저 데이터 불러오기 실패:", error);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
-    if (username) fetchUserData();
+    fetchUserData();
   }, [username]);
 
-  // ✅ 포인트 충전 처리
-  const handleChargePoints = async () => {
+  // ✅ 포인트 충전
+  const handlePayment = async () => {
     if (!selectedAmount) {
-      alert("충전할 금액을 선택하세요!");
+      alert("충전할 금액을 선택해주세요!");
       return;
     }
 
     try {
       const userRef = doc(db, "users", username);
-      const newPoints = (userData?.points || 0) + selectedAmount;
-
+      const newPoints = (userData.points || 0) + selectedAmount;
       await updateDoc(userRef, { points: newPoints });
-
       setUserData((prev) => ({ ...prev, points: newPoints }));
-      alert(`${selectedAmount}P가 충전되었습니다!`);
+      alert(`${selectedAmount.toLocaleString()}P가 충전되었습니다!`);
       setShowModal(false);
     } catch (error) {
       console.error("포인트 충전 실패:", error);
     }
   };
 
-  // ✅ 로딩 상태
-  if (loading) return <p style={{ padding: "20px" }}>로딩 중...</p>;
-  if (!userData)
-    return <p style={{ padding: "20px" }}>유저 데이터를 불러올 수 없습니다.</p>;
+  if (loading) return <p>로딩 중...</p>;
+  if (!userData) return <p>유저 정보를 불러올 수 없습니다.</p>;
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2 style={{ color: "#4f46e5" }}>👤 {username}님 정보</h2>
-
+      <h2 style={{ color: "#4f46e5", fontWeight: "bold" }}>👤 내 정보</h2>
       <div style={{ marginTop: "20px", fontSize: "18px" }}>
         <p>
-          <strong>보유 포인트:</strong>{" "}
-          <span style={{ color: "#4f46e5" }}>
-            {userData.points?.toLocaleString() || 0}P
-          </span>
+          <strong>아이디:</strong> {username}
         </p>
-
         <p>
-          <strong>소장한 영화:</strong>{" "}
-          {userData.ownedMovies?.length > 0
-            ? `${userData.ownedMovies.length}편`
-            : "없음"}
+          <strong>보유 포인트:</strong> {userData.points?.toLocaleString()}P
         </p>
 
-        {/* 🎬 소장 영화 리스트 */}
-        {userData.ownedMovies?.length > 0 && (
-          <ul style={{ marginTop: "10px" }}>
-            {userData.ownedMovies.map((movieId, i) => (
-              <li key={i}>🎞 {movieId}</li>
+        <h3 style={{ marginTop: "20px", fontSize: "18px" }}>🎞 소장한 영화</h3>
+        {userData.ownedMovies?.length > 0 ? (
+          <ul>
+            {userData.ownedMovies.map((movieId, index) => (
+              <li key={index}>🎬 {movieId}</li>
             ))}
           </ul>
+        ) : (
+          <p>아직 소장한 영화가 없습니다.</p>
         )}
 
+        {/* 💳 포인트 충전 버튼 */}
         <button
           onClick={() => setShowModal(true)}
           style={{
             backgroundColor: "#4f46e5",
             color: "white",
             border: "none",
-            borderRadius: "8px",
             padding: "10px 16px",
-            marginTop: "20px",
+            borderRadius: "6px",
             cursor: "pointer",
+            marginTop: "20px",
           }}
         >
-          💳 포인트 충전하기
+          💳 포인트 충전
         </button>
       </div>
 
-      {/* 💰 결제 모달 */}
+      {/* 💰 결제 모달창 */}
       {showModal && (
         <div
           style={{
@@ -127,35 +125,34 @@ function MyPage({ username }) {
             }}
           >
             <h3>💰 포인트 충전</h3>
-            <p style={{ marginBottom: "16px", color: "#555" }}>
-              충전할 금액을 선택하세요
-            </p>
+            <p style={{ marginBottom: "16px" }}>충전할 금액을 선택하세요</p>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {[1000, 5000, 10000, 20000].map((amount) => (
-                <button
-                  key={amount}
-                  onClick={() => setSelectedAmount(amount)}
-                  style={{
-                    padding: "10px",
-                    borderRadius: "6px",
-                    border:
-                      selectedAmount === amount
-                        ? "2px solid #4f46e5"
-                        : "1px solid #ccc",
-                    backgroundColor:
-                      selectedAmount === amount ? "#e0e7ff" : "white",
-                    cursor: "pointer",
-                  }}
-                >
-                  {amount.toLocaleString()}P
-                </button>
-              ))}
-            </div>
-
-            <div style={{ marginTop: "16px", display: "flex", gap: "10px", justifyContent: "center" }}>
+            {[1000, 5000, 10000, 20000].map((amount) => (
               <button
-                onClick={handleChargePoints}
+                key={amount}
+                onClick={() => setSelectedAmount(amount)}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  margin: "6px 0",
+                  padding: "10px",
+                  borderRadius: "8px",
+                  border:
+                    selectedAmount === amount
+                      ? "2px solid #4f46e5"
+                      : "1px solid #ccc",
+                  backgroundColor:
+                    selectedAmount === amount ? "#e0e7ff" : "white",
+                  cursor: "pointer",
+                }}
+              >
+                {amount.toLocaleString()}P
+              </button>
+            ))}
+
+            <div style={{ marginTop: "20px" }}>
+              <button
+                onClick={handlePayment}
                 style={{
                   backgroundColor: "#4f46e5",
                   color: "white",
@@ -163,6 +160,7 @@ function MyPage({ username }) {
                   padding: "8px 16px",
                   borderRadius: "6px",
                   cursor: "pointer",
+                  marginRight: "10px",
                 }}
               >
                 결제하기
