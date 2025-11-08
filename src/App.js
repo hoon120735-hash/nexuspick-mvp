@@ -106,8 +106,8 @@ function App() {
               {/* 검색 */}
               <Route path="/search" element={<Search />} />
 
-              {/* 영화 상세 */}
-              <Route path="/movie/:id" element={<MovieDetail />} />
+              {/* ✅ 영화 상세 (로그인한 유저 아이디 전달) */}
+              <Route path="/movie/:id" element={<MovieDetail userId={username} />} />
 
               {/* 내 정보 페이지 */}
               <Route path="/mypage" element={<MyPage username={username} />} />
