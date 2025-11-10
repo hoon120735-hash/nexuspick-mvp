@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import Home from "./components/Home";
 import Search from "./components/Search";
 import MovieDetail from "./components/MovieDetail";
 import Login from "./components/Login";
 import MyPage from "./components/MyPage";
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
+// ✅ 상단 네비게이션바
 function Navbar({ username }) {
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
@@ -41,7 +42,6 @@ function Navbar({ username }) {
 
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         {username && <span style={{ fontWeight: "bold" }}>{username}님 👋</span>}
-
         <input
           type="text"
           placeholder="감독 또는 영화 제목 검색"
@@ -55,7 +55,6 @@ function Navbar({ username }) {
             width: "220px",
           }}
         />
-
         <button
           onClick={() => navigate("/mypage")}
           style={{
@@ -74,6 +73,7 @@ function Navbar({ username }) {
   );
 }
 
+// ✅ 메인 App
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
