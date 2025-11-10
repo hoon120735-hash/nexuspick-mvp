@@ -29,6 +29,7 @@ function Navbar({ username }) {
         borderBottom: "1px solid #e5e7eb",
       }}
     >
+      {/* 로고 클릭 시 홈 이동 */}
       <h1
         onClick={() => navigate("/")}
         style={{
@@ -42,6 +43,7 @@ function Navbar({ username }) {
 
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         {username && <span style={{ fontWeight: "bold" }}>{username}님 👋</span>}
+
         <input
           type="text"
           placeholder="감독 또는 영화 제목 검색"
@@ -55,6 +57,7 @@ function Navbar({ username }) {
             width: "220px",
           }}
         />
+
         <button
           onClick={() => navigate("/mypage")}
           style={{
@@ -73,7 +76,6 @@ function Navbar({ username }) {
   );
 }
 
-// ✅ 메인 App
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
