@@ -1,54 +1,43 @@
 import React, { useEffect, useState } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
-import { doc, getDoc } from "firebase/firestore";
 
-function MyPage({ username }) {
-  const [points, setPoints] = useState(0);
-  const [ownedMovies, setOwnedMovies] = useState([]);
-  const [loading, setLoading] = useState(true);
+function MyPage({ userId }) {
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-    async function fetchUserData() {
-      if (!username) return;
+    if (!userId) return;
+    const userRef = doc(db, "users", userId);
 
-      try {
-        const userRef = doc(db, "users", username);
-        const userSnap = await getDoc(userRef);
+    const unsub = onSnapshot(userRef, (snap) => {
+      if (snap.exists()) setUserData(snap.data());
+      else setUserData(null);
+    });
 
-        if (userSnap.exists()) {
-          const userData = userSnap.data();
-          setPoints(userData.points || 0);
-          setOwnedMovies(userData.ownedMovies || []);
-        }
-      } catch (error) {
-        console.error("사용자 데이터 불러오기 오류:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
+    return () => unsub();
+  }, [userId]);
 
-    fetchUserData();
-  }, [username]);
-
-  if (loading) return <p>불러오는 중...</p>;
+  if (!userId) return <p>로그인 후 이용해주세요.</p>;
+  if (!userData) return <p>유저 정보를 불러올 수 없습니다.</p>;
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2 style={{ color: "#4f46e5" }}>👤 {username}님</h2>
-      <p style={{ marginTop: "10px" }}>
-        보유 포인트: <strong>{points.toLocaleString()}P</strong>
+      <h2 style={{ color: "#4f46e5" }}>👤 내 정보</h2>
+      <p>
+        <strong>아이디:</strong> {userId}
+      </p>
+      <p>
+        <strong>보유 포인트:</strong> {userData.points?.toLocaleString()}P
+      </p>
+      <p>
+        <strong>소장 영화 수:</strong> {userData.ownedMovies?.length || 0}편
       </p>
 
-      <h3 style={{ marginTop: "20px" }}>🎬 소장한 영화</h3>
-      {ownedMovies.length === 0 ? (
-        <p>아직 소장한 영화가 없습니다 😢</p>
-      ) : (
-        <ul>
-          {ownedMovies.map((movieId) => (
-            <li key={movieId}>📽 영화 ID: {movieId}</li>
-          ))}
-        </ul>
-      )}
+      <ul>
+        {userData.ownedMovies?.map((movieId, index) => (
+          <li key={index}>{movieId}</li>
+        ))}
+      </ul>
     </div>
   );
 }
