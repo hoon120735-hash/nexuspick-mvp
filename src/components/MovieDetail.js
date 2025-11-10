@@ -11,9 +11,9 @@ function MovieDetail({ userId }) {
 
   useEffect(() => {
     const fetchMovie = async () => {
-      const docRef = doc(db, "movies", id);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) setMovie(docSnap.data());
+      const movieRef = doc(db, "movies", id);
+      const movieSnap = await getDoc(movieRef);
+      if (movieSnap.exists()) setMovie(movieSnap.data());
       setLoading(false);
     };
 
@@ -28,7 +28,7 @@ function MovieDetail({ userId }) {
     fetchUser();
   }, [id, userId]);
 
-  // ✅ 소장하기 버튼 클릭
+  // ✅ 영화 소장 처리
   const handlePurchase = async () => {
     if (!userId) {
       alert("로그인 후 이용해주세요.");
@@ -67,12 +67,15 @@ function MovieDetail({ userId }) {
       <p>🎬 감독: {movie.director}</p>
       <p>🗓️ 개봉연도: {movie.year}</p>
       <p>⭐ 평점: {movie.ratingAvg}</p>
+
       <img
         src={movie.posterUrl}
         alt={movie.title}
         style={{ width: "240px", borderRadius: "12px", margin: "12px 0" }}
       />
+
       <p style={{ color: "#555" }}>{movie.description}</p>
+
       <button
         onClick={handlePurchase}
         style={{
