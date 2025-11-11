@@ -1,3 +1,4 @@
+// src/App.js
 import React, { useState } from "react";
 import Home from "./components/Home";
 import Search from "./components/Search";
@@ -29,21 +30,17 @@ function Navbar({ username }) {
         borderBottom: "1px solid #e5e7eb",
       }}
     >
-      {/* 로고 클릭 시 홈 이동 */}
+      {/* 로고 */}
       <h1
         onClick={() => navigate("/")}
-        style={{
-          color: "#4f46e5",
-          cursor: "pointer",
-          fontWeight: "bold",
-        }}
+        style={{ color: "#4f46e5", cursor: "pointer", fontWeight: "bold" }}
       >
         🎬 NexusPick
       </h1>
 
+      {/* 검색창 + 내정보 */}
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         {username && <span style={{ fontWeight: "bold" }}>{username}님 👋</span>}
-
         <input
           type="text"
           placeholder="감독 또는 영화 제목 검색"
@@ -57,7 +54,6 @@ function Navbar({ username }) {
             width: "220px",
           }}
         />
-
         <button
           onClick={() => navigate("/mypage")}
           style={{
@@ -76,6 +72,7 @@ function Navbar({ username }) {
   );
 }
 
+// ✅ 메인 앱
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
@@ -97,7 +94,7 @@ function App() {
               <Route path="/" element={<Home username={username} />} />
               <Route path="/search" element={<Search />} />
               <Route path="/movie/:id" element={<MovieDetail userId={username} />} />
-              <Route path="/mypage" element={<MyPage userId={username} />} />
+              <Route path="/mypage" element={<MyPage username={username} />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </div>
