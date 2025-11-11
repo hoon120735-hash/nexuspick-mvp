@@ -1,29 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { collection, getDocs, query, where, or } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
-function Home({ username }) { // ✅ username 받기 추가
+function Home({ username }) {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchText, setSearchText] = useState("");
-  const [searching, setSearching] = useState(false);
-
   const navigate = useNavigate();
 
-  // 🔹 전체 영화 불러오기
-  const fetchAllMovies = async () => {
-    const movieCol = collection(db, "movies");
-    const movieSnapshot = await getDocs(movieCol);
-    const movieList = movieSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    setMovies(movieList);
-    setLoading(false);
-  };
-
   useEffect(() => {
+    const fetchAllMovies = async () => {
+      const movieCol = collection(db, "movies");
+      const movieSnapshot = await getDocs(movieCol);
+      const movieList = movieSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setMovies(movieList);
+      setLoading(false);
+    };
     fetchAllMovies();
   }, []);
 
@@ -31,7 +26,7 @@ function Home({ username }) { // ✅ username 받기 추가
 
   return (
     <div style={{ padding: "20px" }}>
-      {/* ✅ 로그인한 사용자 환영 메시지 */}
+      {/* 로그인한 사용자 환영 메시지 */}
       {username && (
         <h2 style={{ marginBottom: "20px", color: "#4f46e5" }}>
           {username}님, 넥서스픽에 오신 걸 환영합니다 👋
