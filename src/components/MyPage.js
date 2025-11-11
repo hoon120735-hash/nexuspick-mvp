@@ -1,72 +1,59 @@
-import React, { useEffect, useState } from "react";
+// src/components/MyPage.js
+import React, { useEffect, useState, useCallback } from "react";
 import { db } from "../firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
 
-function MyPage({ userId }) {
+function MyPage({ username }) {
   const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  const fetchUserData = async () => {
-    if (!userId) return;
-    const userRef = doc(db, "users", userId);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) setUserData(userSnap.data());
-    setLoading(false);
-  };
+  const fetchUserData = useCallback(async () => {
+    if (!username) return;
+    const userRef = doc(db, "users", username);
+    const snap = await getDoc(userRef);
+    if (snap.exists()) setUserData(snap.data());
+  }, [username]);
 
   useEffect(() => {
     fetchUserData();
-  }, [userId]);
+  }, [fetchUserData]);
 
-  // ✅ 포인트 충전 기능
-  const handleCharge = async () => {
-    if (!userId) {
-      alert("로그인 후 이용해주세요!");
-      return;
-    }
-
-    const userRef = doc(db, "users", userId);
-    const newPoints = (userData.points || 0) + 1000;
-    await updateDoc(userRef, { points: newPoints });
-
-    alert("💳 1000P 충전 완료!");
-    setUserData((prev) => ({ ...prev, points: newPoints }));
+  const handleChargePoints = async () => {
+    if (!username) return;
+    const userRef = doc(db, "users", username);
+    await updateDoc(userRef, { points: increment(1000) });
+    alert("💰 1000P가 충전되었습니다!");
+    fetchUserData();
   };
 
-  if (loading) return <p>불러오는 중...</p>;
   if (!userData) return <p>유저 정보를 불러올 수 없습니다.</p>;
 
   return (
     <div style={{ padding: "20px" }}>
       <h2 style={{ color: "#4f46e5" }}>👤 내 정보</h2>
-      <p><strong>아이디:</strong> {userId}</p>
-      <p><strong>보유 포인트:</strong> {userData.points}P</p>
+      <p>
+        <strong>아이디:</strong> {username}
+      </p>
+      <p>
+        <strong>보유 포인트:</strong> {userData.points.toLocaleString()}P
+      </p>
+      <p>
+        <strong>소장한 영화:</strong> {userData.ownedMovies?.length || 0}편
+      </p>
 
       <button
-        onClick={handleCharge}
+        onClick={handleChargePoints}
         style={{
-          backgroundColor: "#22c55e",
+          marginTop: "20px",
+          backgroundColor: "#4f46e5",
           color: "white",
           border: "none",
-          padding: "8px 14px",
           borderRadius: "8px",
-          marginTop: "10px",
+          padding: "10px 16px",
           cursor: "pointer",
         }}
       >
-        💳 포인트 1000P 충전
+        💳 포인트 충전 (+1000P)
       </button>
-
-      <h3 style={{ marginTop: "20px", color: "#333" }}>🎬 소장한 영화</h3>
-      {userData.ownedMovies && userData.ownedMovies.length > 0 ? (
-        <ul>
-          {userData.ownedMovies.map((movieId) => (
-            <li key={movieId}>🎞️ {movieId}</li>
-          ))}
-        </ul>
-      ) : (
-        <p>소장한 영화가 없습니다.</p>
-      )}
     </div>
   );
 }
