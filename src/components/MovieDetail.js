@@ -1,94 +1,86 @@
+// src/components/MovieDetail.js
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import { db } from "../firebase";
-import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion, increment } from "firebase/firestore";
+import { useParams } from "react-router-dom";
 
 function MovieDetail({ userId }) {
   const { id } = useParams();
   const [movie, setMovie] = useState(null);
-  const [userPoints, setUserPoints] = useState(0);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchMovie = async () => {
-      const movieRef = doc(db, "movies", id);
-      const movieSnap = await getDoc(movieRef);
-      if (movieSnap.exists()) setMovie(movieSnap.data());
-      setLoading(false);
+      const docRef = doc(db, "movies", id);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setMovie({ id: docSnap.id, ...docSnap.data() });
+      }
     };
-
-    const fetchUser = async () => {
-      if (!userId) return;
-      const userRef = doc(db, "users", userId);
-      const userSnap = await getDoc(userRef);
-      if (userSnap.exists()) setUserPoints(userSnap.data().points || 0);
-    };
-
     fetchMovie();
-    fetchUser();
-  }, [id, userId]);
+  }, [id]);
 
-  // ✅ 영화 소장 처리
   const handlePurchase = async () => {
     if (!userId) {
-      alert("로그인 후 이용해주세요.");
-      return;
-    }
-    if (userPoints < 2000) {
-      alert("포인트가 부족합니다!");
+      alert("로그인 후 이용해주세요!");
       return;
     }
 
     const userRef = doc(db, "users", userId);
     const userSnap = await getDoc(userRef);
-    const userData = userSnap.data();
-    const ownedMovies = userData.ownedMovies || [];
 
-    if (ownedMovies.includes(id)) {
-      alert("이미 소장한 영화입니다!");
+    if (!userSnap.exists()) {
+      alert("유저 정보를 불러올 수 없습니다.");
+      return;
+    }
+
+    const userData = userSnap.data();
+    const moviePrice = 3000;
+
+    if (userData.points < moviePrice) {
+      alert("포인트가 부족합니다! 💳");
       return;
     }
 
     await updateDoc(userRef, {
-      points: userData.points - 2000,
+      points: increment(-moviePrice),
       ownedMovies: arrayUnion(id),
     });
 
-    alert(`✅ ${movie.title}을(를) 소장했습니다! (2000P 차감)`);
-    setUserPoints(userData.points - 2000);
+    alert(`${movie.title}을(를) 소장했습니다!`);
   };
 
-  if (loading) return <p>로딩 중...</p>;
-  if (!movie) return <p>영화를 찾을 수 없습니다.</p>;
+  if (!movie) return <p>영화 정보를 불러오는 중...</p>;
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2 style={{ color: "#4f46e5" }}>{movie.title}</h2>
-      <p>🎬 감독: {movie.director}</p>
-      <p>🗓️ 개봉연도: {movie.year}</p>
-      <p>⭐ 평점: {movie.ratingAvg}</p>
-
-      <img
-        src={movie.posterUrl}
-        alt={movie.title}
-        style={{ width: "240px", borderRadius: "12px", margin: "12px 0" }}
-      />
-
-      <p style={{ color: "#555" }}>{movie.description}</p>
-
+      <h2>{movie.title}</h2>
+      <p>감독: {movie.director}</p>
+      <p>개봉년도: {movie.year}</p>
+      {movie.trailerUrl && (
+        <iframe
+          width="560"
+          height="315"
+          src={movie.trailerUrl}
+          title="예고편"
+          frameBorder="0"
+          allowFullScreen
+          style={{ marginTop: "20px" }}
+        ></iframe>
+      )}
+      <br />
       <button
         onClick={handlePurchase}
         style={{
+          marginTop: "20px",
           backgroundColor: "#4f46e5",
           color: "white",
           border: "none",
+          borderRadius: "6px",
           padding: "10px 16px",
-          borderRadius: "8px",
           cursor: "pointer",
-          marginTop: "12px",
         }}
       >
-        💾 소장하기 (2000P)
+        🎁 영화 소장하기 (3,000P)
       </button>
     </div>
   );
