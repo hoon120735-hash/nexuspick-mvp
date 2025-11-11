@@ -13,9 +13,10 @@ function MyPage({ username }) {
     if (snap.exists()) setUserData(snap.data());
   }, [username]);
 
-  useEffect(() => {
-    fetchUserData();
-  }, [fetchUserData]);
+useEffect(() => {
+  fetchUserData();
+}, [fetchUserData]); // ✅ ESLint가 요구하는 의존성 추가
+
 
   const handleChargePoints = async () => {
     if (!username) return;
