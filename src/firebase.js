@@ -4,15 +4,20 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_BUCKET",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
+  apiKey: "AIzaSyBc1ieXZEOPpNiCEA1NPopQmR0h08UInw8",
+  authDomain: "nexuspick-88b83.firebaseapp.com",
+  projectId: "nexuspick-88b83",
+  storageBucket: "nexuspick-88b83.appspot.com",
+  messagingSenderId: "106940810503",
+  appId: "1:106940810503:web:890ee697bddf1c0fbf31a2",
+  measurementId: "G-YWJETLEW7V"
 };
 
+// Firebase 초기화
 const app = initializeApp(firebaseConfig);
 
+// Firestore 사용 준비
 export const db = getFirestore(app);
+
+// Firebase Auth 사용 준비
 export const auth = getAuth(app);
