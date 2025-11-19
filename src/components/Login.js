@@ -1,99 +1,164 @@
+// src/components/Login.js
 import React, { useState } from "react";
-import { auth } from "../firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
 
 function Login({ onLogin }) {
+  const [step, setStep] = useState(1); // 1 = 로그인 입력, 2 = 관심사 선택
   const [email, setEmail] = useState("");
-  const [pw, setPw] = useState("");
+  const [password, setPassword] = useState("");
+  const [interests, setInterests] = useState([]);
 
-  const handleLogin = async () => {
-    if (!email.trim()) {
-      alert("이메일을 입력해주세요.");
+  const interestList = [
+    "액션",
+    "코미디",
+    "SF",
+    "로맨스",
+    "스릴러",
+    "드라마",
+    "애니메이션",
+  ];
+
+  const toggleInterest = (item) => {
+    setInterests((prev) =>
+      prev.includes(item)
+        ? prev.filter((i) => i !== item)
+        : [...prev, item]
+    );
+  };
+
+  const handleStart = () => {
+    if (!email.trim() || !password.trim()) {
+      alert("이메일과 비밀번호를 입력해주세요!");
       return;
     }
-    if (!pw.trim()) {
-      alert("비밀번호를 입력해주세요.");
-      return;
-    }
+    setStep(2); // 관심사 선택 화면으로 이동
+  };
 
-    try {
-      await signInWithEmailAndPassword(auth, email, pw);
-      onLogin(email);        // App.js 로 전달
-    } catch (error) {
-      alert("로그인 실패: " + error.message);
-    }
+  const handleFinish = () => {
+    onLogin(email); // App.js로 로그인 이메일 전달
   };
 
   return (
     <div
       style={{
-        width: "100vw",
-        height: "100vh",
+        backgroundColor: "#f3f4f6",
+        minHeight: "100vh",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#f2f2f7",
       }}
     >
       <div
         style={{
           backgroundColor: "white",
-          padding: "32px",
-          borderRadius: "16px",
-          width: "400px",
-          boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+          padding: "30px",
+          borderRadius: "12px",
+          width: "360px",
+          boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
           textAlign: "center",
         }}
       >
-        <h2 style={{ marginBottom: "20px", color: "#4f46e5" }}>
-          🎬 NexusPick 로그인
+        <h2
+          style={{ color: "#4f46e5", marginBottom: "20px", fontWeight: "bold" }}
+        >
+          NexusPick 로그인
         </h2>
 
-        {/* 이메일 */}
-        <input
-          type="email"
-          placeholder="이메일 입력"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "12px",
-            marginBottom: "12px",
-            borderRadius: "8px",
-            border: "1px solid #ccc",
-          }}
-        />
+        {step === 1 && (
+          <>
+            <input
+              type="email"
+              placeholder="이메일 입력"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px",
+                marginBottom: "10px",
+                border: "1px solid #ccc",
+                borderRadius: "6px",
+              }}
+            />
 
-        {/* 비밀번호 (명목형 입력) */}
-        <input
-          type="password"
-          placeholder="비밀번호 입력"
-          value={pw}
-          onChange={(e) => setPw(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "12px",
-            marginBottom: "20px",
-            borderRadius: "8px",
-            border: "1px solid #ccc",
-          }}
-        />
+            <input
+              type="password"
+              placeholder="비밀번호 입력(형식만)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px",
+                marginBottom: "20px",
+                border: "1px solid #ccc",
+                borderRadius: "6px",
+              }}
+            />
 
-        <button
-          onClick={handleLogin}
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: "8px",
-            border: "none",
-            backgroundColor: "#4f46e5",
-            color: "white",
-            cursor: "pointer",
-            fontWeight: "bold",
-          }}
-        >
-          로그인
-        </button>
+            <button
+              onClick={handleStart}
+              style={{
+                width: "100%",
+                backgroundColor: "#4f46e5",
+                color: "white",
+                padding: "12px",
+                borderRadius: "6px",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              계속하기
+            </button>
+          </>
+        )}
+
+        {step === 2 && (
+          <>
+            <h3 style={{ marginBottom: "10px" }}>관심사 선택</h3>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px",
+                marginBottom: "20px",
+                justifyContent: "center",
+              }}
+            >
+              {interestList.map((item) => (
+                <div
+                  key={item}
+                  onClick={() => toggleInterest(item)}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: "20px",
+                    border: interests.includes(item)
+                      ? "2px solid #4f46e5"
+                      : "1px solid #ccc",
+                    backgroundColor: interests.includes(item)
+                      ? "#e0e7ff"
+                      : "white",
+                    cursor: "pointer",
+                  }}
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={handleFinish}
+              style={{
+                width: "100%",
+                backgroundColor: "#4f46e5",
+                color: "white",
+                padding: "12px",
+                borderRadius: "6px",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              시작하기
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
