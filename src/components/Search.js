@@ -4,49 +4,60 @@ import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { useLocation, useNavigate } from "react-router-dom";
 
-// URL의 ?query= 값 가져오기
+// URL에서 ?query= 값 읽어오는 훅
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
 function Search() {
-  const queryParam = useQuery().get("query") || "";
+  const queryParam = useQuery().get("query") || ""; // /search?query=봉준호
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
-  const [movies, setMovies] = useState([]);
-  const [results, setResults] = useState([]);
+  const [movies, setMovies] = useState([]);   // 전체 영화 (Firebase에서 읽어온 것)
+  const [results, setResults] = useState([]); // 검색 결과만
 
-  // 🔹 1) Firebase에서 전체 영화 불러오기
+  // 1) Firebase 에서 영화 전체 읽기
   const fetchMovies = async () => {
-    const col = collection(db, "movies");
-    const snap = await getDocs(col);
-    const list = snap.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    setMovies(list);
-    setLoading(false);
+    try {
+      const col = collection(db, "movies");
+      const snap = await getDocs(col);
+      const list = snap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setMovies(list);
+    } catch (e) {
+      console.error("영화 불러오기 실패:", e);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // 최초 1회 로딩
   useEffect(() => {
     fetchMovies();
   }, []);
 
-  // 🔹 2) 검색어에 따라 필터링 실행
+  // 2) queryParam(검색어) + 영화 데이터로 필터링
   useEffect(() => {
-    if (!loading) {
-      const q = queryParam.toLowerCase();
+    if (loading) return;
 
-      const filtered = movies.filter(
-        (m) =>
-          m.title.toLowerCase().includes(q) ||
-          (m.director && m.director.toLowerCase().includes(q))
-      );
+    const q = queryParam.trim().toLowerCase();
 
-      setResults(filtered);
+    // 🔴 검색어가 비어 있을 때는 결과를 비워둠 (전체 영화 출력을 막기 위해)
+    if (!q) {
+      setResults([]);
+      return;
     }
+
+    const filtered = movies.filter((m) => {
+      const title = (m.title || "").toLowerCase();
+      const director = (m.director || "").toLowerCase();
+
+      return title.includes(q) || director.includes(q);
+    });
+
+    setResults(filtered);
   }, [queryParam, loading, movies]);
 
   if (loading) return <p>영화 데이터를 불러오는 중...</p>;
@@ -54,14 +65,23 @@ function Search() {
   return (
     <div style={{ padding: "20px" }}>
       <h2>
-        🔍 검색 결과: <strong>{queryParam}</strong>
+        🔍 검색 결과:{" "}
+        <strong>{queryParam ? queryParam : "(검색어 없음)"}</strong>
       </h2>
 
-      {results.length === 0 && (
-        <p style={{ marginTop: "20px" }}>검색 결과가 없습니다.</p>
+      {/* 검색어가 없을 때 */}
+      {!queryParam.trim() && (
+        <p style={{ marginTop: "16px", color: "#6b7280" }}>
+          위 상단 검색창에서 제목이나 감독 이름을 입력 후 Enter를 눌러주세요.
+        </p>
       )}
 
-      {/* 3열 카드 UI */}
+      {/* 검색어는 있는데 결과가 없을 때 */}
+      {queryParam.trim() && results.length === 0 && (
+        <p style={{ marginTop: "16px" }}>검색 결과가 없습니다 😢</p>
+      )}
+
+      {/* 검색 결과 카드들 (3열) */}
       <div
         style={{
           display: "grid",
@@ -84,11 +104,15 @@ function Search() {
           >
             <h3 style={{ marginBottom: "8px" }}>{movie.title}</h3>
 
-            <p style={{ color: "#6b7280", marginBottom: "8px" }}>
+            <p style={{ color: "#6b7280", marginBottom: "4px" }}>
               감독: {movie.director || "정보 없음"}
             </p>
 
-            <p style={{ color: "#f59e0b", fontWeight: "bold" }}>
+            <p style={{ color: "#4b5563", fontSize: "14px" }}>
+              개봉연도: {movie.year || "미상"}
+            </p>
+
+            <p style={{ color: "#f59e0b", fontWeight: "bold", marginTop: "4px" }}>
               ⭐ {movie.ratingAvg ?? "평점 없음"}
             </p>
 
@@ -103,7 +127,7 @@ function Search() {
                 borderRadius: "6px",
               }}
             >
-              바로 보기
+              상세보기
             </button>
           </div>
         ))}
