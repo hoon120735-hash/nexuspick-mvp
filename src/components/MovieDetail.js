@@ -8,20 +8,24 @@ function MovieDetail() {
   const [movie, setMovie] = useState(null);
 
   const buyMovie = () => {
-    const current = JSON.parse(localStorage.getItem("ownedMovies") || "[]");
+    const owned = JSON.parse(localStorage.getItem("ownedMovies") || "[]");
     const points = parseInt(localStorage.getItem("points") || "0");
 
-    if (current.includes(id)) {
+    if (owned.some(item => item.id === id)) {
       return alert("이미 소장한 콘텐츠입니다.");
     }
 
-    const price = movie.price || 0;
+    const price = movie.price ?? 0;
 
     if (points < price) {
       return alert("포인트가 부족합니다!");
     }
 
-    localStorage.setItem("ownedMovies", JSON.stringify([...current, id]));
+    localStorage.setItem("ownedMovies", JSON.stringify([
+      ...owned,
+      { id, title: movie.title, price }
+    ]));
+
     localStorage.setItem("points", points - price);
 
     alert("구매 완료!");
@@ -39,14 +43,28 @@ function MovieDetail() {
   if (!movie) return <p>로딩 중...</p>;
 
   return (
-    <div>
+    <div style={{ padding: 20 }}>
       <h2>{movie.title}</h2>
-      <p>{movie.genre}</p>
-      <p>{movie.price ? `${movie.price}원` : "무료"}</p>
+      <p style={{ fontSize: 14, color: "#666" }}>{movie.genre}</p>
+
+      <p style={{ fontWeight: "bold" }}>
+        가격: {movie.price ? `₩${movie.price.toLocaleString()}` : "무료"}
+      </p>
+
+      <p style={{ color: "#facc15" }}>
+        ⭐ {movie.rating ? movie.rating : "평점 없음"}
+      </p>
 
       <button
         onClick={buyMovie}
-        style={{ background: "#4f46e5", color: "white", padding: "10px 16px", borderRadius: 6 }}
+        style={{
+          marginTop: 15,
+          background: "#4f46e5",
+          color: "white",
+          padding: "10px 16px",
+          borderRadius: 6,
+          fontWeight: "bold",
+        }}
       >
         소장하기
       </button>
