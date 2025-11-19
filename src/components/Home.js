@@ -1,66 +1,45 @@
-import React, { useEffect, useState, useCallback } from "react";
+// src/components/Home.js
+import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
-function Home({ userId }) {
+function Home({ username }) {
   const [movies, setMovies] = useState([]);
   const navigate = useNavigate();
 
-  // 🔹 전체 영화 불러오기
-  const fetchMovies = useCallback(async () => {
-    const snapshot = await getDocs(collection(db, "movies"));
-    const list = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    setMovies(list);
-  }, []);
-
+  // Firestore 영화 리스트 불러오기
   useEffect(() => {
-    fetchMovies();
-  }, [fetchMovies]);
+    const loadMovies = async () => {
+      const colRef = collection(db, "movies");
+      const snap = await getDocs(colRef);
+      setMovies(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    };
+
+    loadMovies();
+  }, []);
 
   return (
     <div style={{ padding: "20px" }}>
-      {userId && (
-        <h2 style={{ marginBottom: "20px", color: "#4f46e5" }}>
-          환영합니다!
+      {username && (
+        <h2>
+          🎬 환영합니다, {username} 님!
         </h2>
       )}
 
-      <h3>🎞 인기 영화</h3>
+      <h3 style={{ marginTop: "20px" }}>🔥 인기 영화</h3>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-          gap: "16px",
-          marginTop: "16px",
-        }}
-      >
-        {movies.map((movie) => (
-          <div
-            key={movie.id}
-            onClick={() => navigate(`/movie/${movie.id}`)}
-            style={{ cursor: "pointer", textAlign: "center" }}
+      <ul>
+        {movies.map((m) => (
+          <li
+            key={m.id}
+            style={{ cursor: "pointer", marginBottom: "8px" }}
+            onClick={() => navigate(`/movie/${m.id}`)}
           >
-            <img
-              src={movie.posterUrl}
-              alt={movie.title}
-              width={130}
-              height={180}
-              style={{ borderRadius: "8px" }}
-            />
-            <p style={{ marginTop: "8px", fontWeight: "bold" }}>
-              {movie.title}
-            </p>
-            <p style={{ color: "#f59e0b" }}>
-              {movie.ratingAvg} ★
-            </p>
-          </div>
+            {m.title}
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
