@@ -1,73 +1,52 @@
+// src/components/MovieDetail.js
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { useParams } from "react-router-dom";
 
-function MovieDetail() {
+function MovieDetail({ onPurchase, ownedMovies, points }) {
   const { id } = useParams();
   const [movie, setMovie] = useState(null);
 
-  const buyMovie = () => {
-    const owned = JSON.parse(localStorage.getItem("ownedMovies") || "[]");
-    const points = parseInt(localStorage.getItem("points") || "0");
-
-    if (owned.some(item => item.id === id)) {
-      return alert("이미 소장한 콘텐츠입니다.");
-    }
-
-    const price = movie.price ?? 0;
-
-    if (points < price) {
-      return alert("포인트가 부족합니다!");
-    }
-
-    localStorage.setItem("ownedMovies", JSON.stringify([
-      ...owned,
-      { id, title: movie.title, price }
-    ]));
-
-    localStorage.setItem("points", points - price);
-
-    alert("구매 완료!");
-  };
-
-  const fetchMovie = async () => {
-    const snap = await getDoc(doc(db, "movies", id));
-    if (snap.exists()) setMovie({ id, ...snap.data() });
-  };
-
   useEffect(() => {
+    const fetchMovie = async () => {
+      const snap = await getDoc(doc(db, "movies", id));
+      if (snap.exists()) setMovie({ id, ...snap.data() });
+    };
     fetchMovie();
-  }, []);
+  }, [id]);
 
   if (!movie) return <p>로딩 중...</p>;
 
+  const alreadyOwned = ownedMovies.some((m) => m.id === movie.id);
+
   return (
-    <div style={{ padding: 20 }}>
-      <h2>{movie.title}</h2>
-      <p style={{ fontSize: 14, color: "#666" }}>{movie.genre}</p>
-
-      <p style={{ fontWeight: "bold" }}>
-        가격: {movie.price ? `₩${movie.price.toLocaleString()}` : "무료"}
-      </p>
-
-      <p style={{ color: "#facc15" }}>
-        ⭐ {movie.rating ? movie.rating : "평점 없음"}
+    <div style={{ padding: "20px" }}>
+      <h2 style={{ marginBottom: "10px" }}>{movie.title}</h2>
+      <p>감독: {movie.director}</p>
+      <p>연도: {movie.year}</p>
+      <p>예고편: {movie.trailerUrl}</p>
+      <p style={{ fontSize: "20px", fontWeight: "bold", marginTop: "10px" }}>
+        가격: {movie.price.toLocaleString()}P
       </p>
 
       <button
-        onClick={buyMovie}
+        onClick={() => onPurchase(movie)}
+        disabled={alreadyOwned}
         style={{
-          marginTop: 15,
-          background: "#4f46e5",
+          backgroundColor: alreadyOwned ? "#ccc" : "#4f46e5",
           color: "white",
+          border: "none",
           padding: "10px 16px",
-          borderRadius: 6,
-          fontWeight: "bold",
+          borderRadius: "6px",
+          marginTop: "20px",
+          cursor: alreadyOwned ? "not-allowed" : "pointer",
         }}
       >
-        소장하기
+        {alreadyOwned ? "소장 완료" : "소장하기"}
       </button>
+
+      <p style={{ marginTop: "10px" }}>보유 포인트: {points}P</p>
     </div>
   );
 }
