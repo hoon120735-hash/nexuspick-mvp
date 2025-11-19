@@ -1,109 +1,63 @@
-import React, { useState } from "react";
-import Home from "./components/Home";
-import Search from "./components/Search";
-import MovieDetail from "./components/MovieDetail";
+import React, { useState, useEffect } from "react";
 import Login from "./components/Login";
+import Home from "./components/Home";
+import MovieDetail from "./components/MovieDetail";
 import MyPage from "./components/MyPage";
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
-// -------------------
-// 네비게이션바
-// -------------------
-function Navbar({ userId }) {
+function Navbar({ username, onLogout }) {
   const navigate = useNavigate();
-  const [searchText, setSearchText] = useState("");
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && searchText.trim()) {
-      navigate(`/search?query=${encodeURIComponent(searchText.trim())}`);
-      setSearchText("");
-    }
-  };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "10px 20px",
-        backgroundColor: "#f3f4f6",
-        borderBottom: "1px solid #e5e7eb"
-      }}
-    >
-      <h1
-        onClick={() => navigate("/")}
-        style={{ color: "#4f46e5", cursor: "pointer", fontWeight: "bold" }}
-      >
-        🎬 넥서스픽
-      </h1>
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid #ddd" }}>
+      <h2 style={{ cursor: "pointer", color: "#4f46e5" }} onClick={() => navigate("/")}>
+        NexusPick
+      </h2>
 
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        {userId && <span style={{ fontWeight: "bold" }}>UID: {userId}</span>}
+        {username && <b>{username}님 👋</b>}
 
-        <input
-          type="text"
-          placeholder="감독 또는 영화 제목 검색"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          onKeyDown={handleKeyDown}
-          style={{
-            border: "1px solid #ccc",
-            borderRadius: "6px",
-            padding: "8px 12px",
-            width: "220px"
-          }}
-        />
+        <button onClick={() => navigate("/mypage")}>내 정보</button>
 
         <button
-          onClick={() => navigate("/mypage")}
-          style={{
-            backgroundColor: "#4f46e5",
-            color: "white",
-            border: "none",
-            padding: "8px 12px",
-            borderRadius: "6px",
-            cursor: "pointer"
+          onClick={() => {
+            localStorage.clear();
+            onLogout();
+            navigate("/");
           }}
+          style={{ background: "#ef4444", color: "white", border: "none", padding: "8px 12px", borderRadius: 6 }}
         >
-          내 정보
+          앱 종료(로그아웃)
         </button>
       </div>
     </div>
   );
 }
 
-// -------------------
-// 메인 App 컴포넌트
-// -------------------
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userId, setUserId] = useState(""); // UID 저장
+  const [username, setUsername] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("username");
+    if (saved) setUsername(saved);
+  }, []);
+
+  if (!username) {
+    return <Login onLogin={(id) => setUsername(id)} />;
+  }
 
   return (
     <Router>
-      {!isLoggedIn ? (
-        <Login
-          onLogin={(uid) => {
-            setUserId(uid);
-            setIsLoggedIn(true);
-          }}
-        />
-      ) : (
-        <div style={{ fontFamily: "sans-serif" }}>
-          <Navbar userId={userId} />
+      <Navbar username={username} onLogout={() => setUsername("")} />
 
-          <div style={{ padding: "20px" }}>
-            <Routes>
-              <Route path="/" element={<Home userId={userId} />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/movie/:id" element={<MovieDetail userId={userId} />} />
-              <Route path="/mypage" element={<MyPage userId={userId} />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </div>
-        </div>
-      )}
+      <div style={{ padding: 20 }}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/movie/:id" element={<MovieDetail />} />
+          <Route path="/mypage" element={<MyPage />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </div>
     </Router>
   );
 }
