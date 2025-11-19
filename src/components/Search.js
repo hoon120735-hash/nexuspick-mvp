@@ -1,88 +1,75 @@
 // src/components/Search.js
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
+import { useLocation, useNavigate } from "react-router-dom";
 
 function Search() {
-  const navigate = useNavigate();
-  const { search } = useLocation();
-  const queryParam = new URLSearchParams(search).get("query")?.trim() || "";
-
-  const [results, setResults] = useState([]);
+  const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔍 Firestore 전체 읽고 클라이언트에서 검색 필터링
-  const fetchResults = async () => {
-    setLoading(true);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-    try {
+  // URL에서 검색어 가져오기
+  const query = new URLSearchParams(location.search).get("query") || "";
+
+  // Firestore 영화 데이터 불러오기
+  useEffect(() => {
+    const fetchMovies = async () => {
       const movieCol = collection(db, "movies");
       const snapshot = await getDocs(movieCol);
-
-      const movieList = snapshot.docs.map((doc) => ({
+      const list = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
 
-      // 🔍 부분 검색 + 제목/감독 검색
-      const filtered = movieList.filter((movie) => {
-        const t = movie.title?.toLowerCase() || "";
-        const d = movie.director?.toLowerCase() || "";
-        const q = queryParam.toLowerCase();
+      setMovies(list);
+      setLoading(false);
+    };
 
-        return t.includes(q) || d.includes(q);
-      });
+    fetchMovies();
+  }, []);
 
-      setResults(filtered);
-    } catch (error) {
-      console.error("검색 오류:", error);
-    }
+  if (loading) return <p>검색 중...</p>;
 
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchResults();
-  }, [queryParam]);
+  // 제목 또는 감독 기준으로 필터
+  const filtered = movies.filter(
+    (m) =>
+      m.title?.toLowerCase().includes(query.toLowerCase()) ||
+      m.director?.toLowerCase().includes(query.toLowerCase())
+  );
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2>🔍 검색 결과</h2>
-      <p style={{ color: "#555" }}>"{queryParam}" 검색 결과</p>
+      <h2 style={{ marginBottom: "20px", color: "#4f46e5" }}>
+        🔍 “{query}” 검색결과
+      </h2>
 
-      {loading ? (
-        <p>검색 중...</p>
-      ) : results.length === 0 ? (
-        <p>검색 결과가 없습니다 😢</p>
+      {filtered.length === 0 ? (
+        <p style={{ fontSize: "18px" }}>검색 결과가 없습니다 😢</p>
       ) : (
-        <ul
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "20px",
-            marginTop: "20px",
-          }}
-        >
-          {results.map((movie) => (
+        <ul style={{ padding: 0, margin: 0 }}>
+          {filtered.map((movie) => (
             <li
               key={movie.id}
+              onClick={() => navigate(`/movie/${movie.id}`)}
               style={{
                 listStyle: "none",
+                padding: "15px",
+                marginBottom: "12px",
                 background: "white",
-                padding: "12px",
                 borderRadius: "10px",
-                cursor: "pointer",
                 boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                cursor: "pointer",
               }}
-              onClick={() => navigate(`/movie/${movie.id}`)}
             >
-              <strong style={{ fontSize: "18px" }}>{movie.title}</strong>
-              <p style={{ color: "#666", marginTop: "6px" }}>
-                감독: {movie.director}
+              <h3 style={{ margin: 0 }}>{movie.title}</h3>
+              <p style={{ margin: "6px 0", color: "#555" }}>
+                🎬 감독: {movie.director}
               </p>
-              <p style={{ color: "#f59e0b" }}>
-                {movie.ratingAvg ? `${movie.ratingAvg}★` : "평점 없음"}
+              <p style={{ margin: "4px 0", color: "#f59e0b" }}>
+                ⭐ 평점: {movie.ratingAvg ?? "평점 없음"}
               </p>
             </li>
           ))}
