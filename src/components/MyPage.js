@@ -1,78 +1,56 @@
-// src/components/MyPage.js
-import React, { useEffect, useState, useCallback } from "react";
-import { db, auth } from "../firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { signOut } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { db } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
 
-function MyPage({ userId }) {
-  const navigate = useNavigate();
-  const [userData, setUserData] = useState(null);
+function MyPage() {
+  const username = localStorage.getItem("username");
+  const [points, setPoints] = useState(Number(localStorage.getItem("points") || 0));
+  const [list, setList] = useState([]);
 
-  // Firestore에서 유저 정보 불러오기
-  const fetchUserData = useCallback(async () => {
-    if (!userId) return;
+  const charge = (amount) => {
+    const newValue = points + amount;
+    setPoints(newValue);
+    localStorage.setItem("points", newValue);
+  };
 
-    try {
-      const userRef = doc(db, "users", userId);
-      const snap = await getDoc(userRef);
+  const loadOwnedMovies = async () => {
+    const ids = JSON.parse(localStorage.getItem("ownedMovies") || "[]");
+    const results = [];
 
-      if (snap.exists()) {
-        setUserData(snap.data());
-      }
-    } catch (error) {
-      console.error("유저 정보 불러오기 실패:", error);
+    for (let id of ids) {
+      const snap = await getDoc(doc(db, "movies", id));
+      if (snap.exists()) results.push(snap.data().title);
     }
-  }, [userId]);
+
+    setList(results);
+  };
 
   useEffect(() => {
-    fetchUserData();
-  }, [fetchUserData]);
-
-  // 포인트 충전
-  const handleChargePoint = async () => {
-    if (!userId || !userData) return;
-
-    const userRef = doc(db, "users", userId);
-    const newPoint = (userData.point || 0) + 1000;
-
-    await updateDoc(userRef, { point: newPoint });
-
-    // UI 즉시 업데이트
-    setUserData((prev) => ({ ...prev, point: newPoint }));
-  };
-
-  // 로그아웃 처리
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/"); // App.js에서 상태 초기화됨
-  };
-
-  if (!userData) return <p>유저 정보를 불러올 수 없습니다.</p>;
+    loadOwnedMovies();
+  }, []);
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>{userData.nickname} 님의 마이페이지</h2>
+    <div>
+      <h2>내 정보</h2>
+      <p><b>아이디:</b> {username}</p>
+      <p><b>보유 포인트:</b> {points.toLocaleString()}P</p>
 
-      <p><b>보유 포인트:</b> {userData.point} P</p>
-      <button onClick={handleChargePoint}>+1000 충전</button>
+      <button onClick={() => charge(1000)}>+ 1,000 충전</button>
+      <button onClick={() => charge(5000)} style={{ marginLeft: 10 }}>+ 5,000 충전</button>
+      <button onClick={() => charge(10000)} style={{ marginLeft: 10 }}>+ 10,000 충전</button>
 
-      <hr />
+      <hr style={{ margin: "20px 0" }} />
 
-      <h3>🎬 소장 영화 목록</h3>
-      {userData.ownedMovies?.length > 0 ? (
+      <h3>소장 콘텐츠</h3>
+      {list.length === 0 ? (
+        <p>소장한 콘텐츠가 없습니다.</p>
+      ) : (
         <ul>
-          {userData.ownedMovies.map((m) => (
-            <li key={m.id}>{m.title}</li>
+          {list.map((title, i) => (
+            <li key={i}>{title}</li>
           ))}
         </ul>
-      ) : (
-        <p>소장한 영화가 없습니다.</p>
       )}
-
-      <hr />
-
-      <button onClick={handleLogout}>로그아웃</button>
     </div>
   );
 }
