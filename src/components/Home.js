@@ -1,69 +1,59 @@
+// src/components/Home.js
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
-function Home() {
+function Home({ username }) {
   const [movies, setMovies] = useState([]);
   const navigate = useNavigate();
 
-  const fetchMovies = async () => {
-    const snap = await getDocs(collection(db, "movies"));
-    const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    setMovies(list);
-  };
-
+  // Firestore에서 movies 읽기 (읽기만)
   useEffect(() => {
+    const fetchMovies = async () => {
+      const snapshot = await getDocs(collection(db, "movies"));
+      const list = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setMovies(list);
+    };
     fetchMovies();
   }, []);
 
   return (
-    <div>
-      <h2 style={{ marginBottom: 20 }}>🎞 추천 콘텐츠</h2>
+    <div style={{ padding: "20px" }}>
+      <h2 style={{ marginBottom: "20px", color: "#4f46e5" }}>
+        {username}님, 환영합니다 👋
+      </h2>
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-          gap: 20,
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: "20px",
         }}
       >
-        {movies.map((m) => (
+        {movies.map((movie) => (
           <div
-            key={m.id}
+            key={movie.id}
+            onClick={() => navigate(`/movie/${movie.id}`)}
             style={{
-              border: "1px solid #ddd",
-              padding: 20,
-              borderRadius: 10,
-              boxShadow: "0 3px 6px rgba(0,0,0,0.08)",
+              padding: "15px",
+              borderRadius: "10px",
+              backgroundColor: "white",
+              cursor: "pointer",
+              boxShadow: "0 3px 8px rgba(0,0,0,0.15)",
             }}
           >
-            <h3>{m.title}</h3>
-            <p style={{ color: "#777" }}>{m.genre}</p>
-
-            <p style={{ fontWeight: "bold" }}>
-              {m.price ? `₩${m.price.toLocaleString()}` : "무료"}
+            <h3 style={{ fontWeight: "bold" }}>{movie.title}</h3>
+            <p style={{ color: "#555" }}>{movie.director}</p>
+            <p style={{ color: "#f59e0b" }}>
+              ⭐ {movie.ratingAvg ? movie.ratingAvg.toFixed(1) : "평점 없음"}
             </p>
-
-            <p style={{ color: "#facc15", fontSize: 14 }}>
-              ⭐ {m.rating ? m.rating : "평점 없음"}
+            <p style={{ fontWeight: "bold", color: "#4f46e5" }}>
+              {movie.price ? `${movie.price.toLocaleString()}P` : "무료"}
             </p>
-
-            <button
-              onClick={() => navigate(`/movie/${m.id}`)}
-              style={{
-                width: "100%",
-                marginTop: 10,
-                background: "#111827",
-                color: "white",
-                padding: "10px 14px",
-                borderRadius: 8,
-                fontWeight: "bold",
-                cursor: "pointer",
-              }}
-            >
-              바로 보기
-            </button>
           </div>
         ))}
       </div>
