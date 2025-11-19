@@ -1,62 +1,55 @@
-// src/components/MovieDetail.js
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { useParams } from "react-router-dom";
 
-function MovieDetail({ userId }) {
+function MovieDetail() {
   const { id } = useParams();
   const [movie, setMovie] = useState(null);
 
-  // Firestore에서 해당 영화 불러오기
-  useEffect(() => {
-    const loadMovie = async () => {
-      const movieRef = doc(db, "movies", id);
-      const snap = await getDoc(movieRef);
+  const buyMovie = () => {
+    const current = JSON.parse(localStorage.getItem("ownedMovies") || "[]");
+    const points = parseInt(localStorage.getItem("points") || "0");
 
-      if (snap.exists()) {
-        setMovie({ id: snap.id, ...snap.data() });
-      }
-    };
-
-    loadMovie();
-  }, [id]);
-
-  // 영화 소장하기 기능
-  const handleOwnMovie = async () => {
-    if (!userId) {
-      alert("로그인 후 이용해주세요!");
-      return;
+    if (current.includes(id)) {
+      return alert("이미 소장한 콘텐츠입니다.");
     }
 
-    const userRef = doc(db, "users", userId);
-    const userSnap = await getDoc(userRef);
+    const price = movie.price || 0;
 
-    if (!userSnap.exists()) return;
+    if (points < price) {
+      return alert("포인트가 부족합니다!");
+    }
 
-    const userData = userSnap.data();
+    localStorage.setItem("ownedMovies", JSON.stringify([...current, id]));
+    localStorage.setItem("points", points - price);
 
-    // 소장 정보 생성 (id + title)
-    const movieData = {
-      id: movie.id,
-      title: movie.title,
-    };
-
-    await updateDoc(userRef, {
-      ownedMovies: [...(userData.ownedMovies || []), movieData],
-    });
-
-    alert("영화를 소장했습니다!");
+    alert("구매 완료!");
   };
 
-  if (!movie) return <p>영화 정보를 불러오는 중...</p>;
+  const fetchMovie = async () => {
+    const snap = await getDoc(doc(db, "movies", id));
+    if (snap.exists()) setMovie({ id, ...snap.data() });
+  };
+
+  useEffect(() => {
+    fetchMovie();
+  }, []);
+
+  if (!movie) return <p>로딩 중...</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div>
       <h2>{movie.title}</h2>
-      {movie.year && <p>📆 제작년도: {movie.year}</p>}
+      <p>{movie.genre}</p>
+      <p>{movie.price ? `${movie.price}원` : "무료"}</p>
 
-      <button onClick={handleOwnMovie}>🎁 소장하기</button>
+      <button
+        onClick={buyMovie}
+        style={{ background: "#4f46e5", color: "white", padding: "10px 16px", borderRadius: 6 }}
+      >
+        소장하기
+      </button>
     </div>
   );
 }
