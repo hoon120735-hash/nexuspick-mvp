@@ -1,84 +1,78 @@
+// src/components/MyPage.js
 import React, { useEffect, useState, useCallback } from "react";
-import { db } from "../firebase";
+import { db, auth } from "../firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { signOut } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 
 function MyPage({ userId }) {
+  const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
 
-  // 🔹 Firestore에서 유저 정보 가져오기
+  // Firestore에서 유저 정보 불러오기
   const fetchUserData = useCallback(async () => {
     if (!userId) return;
 
     try {
-      const ref = doc(db, "users", userId);
-      const snapshot = await getDoc(ref);
+      const userRef = doc(db, "users", userId);
+      const snap = await getDoc(userRef);
 
-      if (snapshot.exists()) {
-        setUserData(snapshot.data());
-      } else {
-        setUserData(null);
+      if (snap.exists()) {
+        setUserData(snap.data());
       }
     } catch (error) {
-      console.error("유저 데이터 불러오기 오류:", error);
-      setUserData(null);
+      console.error("유저 정보 불러오기 실패:", error);
     }
   }, [userId]);
 
-  // 🔹 최초 실행
   useEffect(() => {
     fetchUserData();
   }, [fetchUserData]);
 
-  // 🔹 포인트 충전(+1000)
-  const handleCharge = async () => {
-    if (!userId) return;
+  // 포인트 충전
+  const handleChargePoint = async () => {
+    if (!userId || !userData) return;
 
-    try {
-      const ref = doc(db, "users", userId);
-      await updateDoc(ref, {
-        points: (userData.points || 0) + 1000,
-      });
+    const userRef = doc(db, "users", userId);
+    const newPoint = (userData.point || 0) + 1000;
 
-      fetchUserData(); // 최신 데이터 반영
-    } catch (err) {
-      console.error("포인트 충전 오류:", err);
-    }
+    await updateDoc(userRef, { point: newPoint });
+
+    // UI 즉시 업데이트
+    setUserData((prev) => ({ ...prev, point: newPoint }));
   };
 
-  if (!userData) return <p style={{ padding: "20px" }}>사용자 정보를 불러올 수 없습니다.</p>;
+  // 로그아웃 처리
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/"); // App.js에서 상태 초기화됨
+  };
+
+  if (!userData) return <p>유저 정보를 불러올 수 없습니다.</p>;
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2 style={{ color: "#4f46e5" }}>👤 내 정보</h2>
+      <h2>{userData.nickname} 님의 마이페이지</h2>
 
-      <p><strong>UID:</strong> {userId}</p>
-      <p><strong>포인트:</strong> {userData.points}P</p>
+      <p><b>보유 포인트:</b> {userData.point} P</p>
+      <button onClick={handleChargePoint}>+1000 충전</button>
 
-      <h3 style={{ marginTop: "20px" }}>🎞 소장한 영화</h3>
+      <hr />
+
+      <h3>🎬 소장 영화 목록</h3>
       {userData.ownedMovies?.length > 0 ? (
         <ul>
-          {userData.ownedMovies.map((id) => (
-            <li key={id}>{id}</li>
+          {userData.ownedMovies.map((m) => (
+            <li key={m.id}>{m.title}</li>
           ))}
         </ul>
       ) : (
         <p>소장한 영화가 없습니다.</p>
       )}
 
-      <button
-        onClick={handleCharge}
-        style={{
-          marginTop: "20px",
-          padding: "10px 16px",
-          backgroundColor: "#4f46e5",
-          color: "white",
-          border: "none",
-          borderRadius: "8px",
-          cursor: "pointer",
-        }}
-      >
-        💳 포인트 +1000 충전
-      </button>
+      <hr />
+
+      <button onClick={handleLogout}>로그아웃</button>
     </div>
   );
 }
