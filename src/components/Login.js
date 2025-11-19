@@ -81,7 +81,7 @@ function Login({ onLogin }) {
 
             <input
               type="password"
-              placeholder="비밀번호 입력(형식만)"
+              placeholder="비밀번호 입력"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               style={{
