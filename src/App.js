@@ -17,11 +17,11 @@ import Login from "./components/Login";
 // ================================
 // ✅ 상단 네비게이션바 컴포넌트
 // ================================
-function Navbar({ username }) {
+function Navbar({ username, onLogout }) {
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
 
-  // ✔ Enter키로 검색 실행 (검색 파라미터 query로 고정)
+  // ✔ Enter키로 검색 실행 → /search?query=...
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && searchText.trim()) {
       navigate(`/search?query=${encodeURIComponent(searchText.trim())}`);
@@ -55,7 +55,9 @@ function Navbar({ username }) {
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         {/* 로그인한 사용자 표시 */}
         {username && (
-          <span style={{ fontWeight: "bold" }}>{username}님 👋</span>
+          <span style={{ fontWeight: "bold", color: "#22c55e" }}>
+            {username}님 환영합니다 👋
+          </span>
         )}
 
         {/* 🔍 검색창 */}
@@ -87,6 +89,21 @@ function Navbar({ username }) {
         >
           내 정보
         </button>
+
+        {/* 🔓 로그아웃 버튼 */}
+        <button
+          onClick={onLogout}
+          style={{
+            backgroundColor: "#ef4444",
+            color: "white",
+            border: "none",
+            padding: "8px 12px",
+            borderRadius: "6px",
+            cursor: "pointer",
+          }}
+        >
+          로그아웃
+        </button>
       </div>
     </div>
   );
@@ -106,9 +123,18 @@ function App() {
     setUsername(email);
     setIsLoggedIn(true);
 
-    // 로그인할 때마다 초기화 (요청한 방식)
+    // 로그인할 때마다 초기화
     setPoints(10000);
     setOwnedMovies([]);
+  };
+
+  // 🔓 로그아웃 → 모든 상태 초기화
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setUsername("");
+    setPoints(10000);
+    setOwnedMovies([]);
+    localStorage.clear(); // 혹시 모를 저장 데이터 삭제
   };
 
   // 💰 포인트 충전
@@ -154,7 +180,7 @@ function App() {
         // 로그인하지 않은 상태 → 로그인 화면만 표시
         <Login onLogin={handleLogin} />
       ) : (
-        // 로그인 후 메인 레이아웃
+        // 로그인 후 메인 화면
         <div
           style={{
             fontFamily: "sans-serif",
@@ -162,14 +188,14 @@ function App() {
             minHeight: "100vh",
           }}
         >
-          <Navbar username={username} />
+          <Navbar username={username} onLogout={handleLogout} />
 
           <div style={{ padding: "20px" }}>
             <Routes>
-              {/* 홈 페이지 */}
+              {/* 홈 */}
               <Route path="/" element={<Home username={username} />} />
 
-              {/* 영화 상세 화면 */}
+              {/* 영화 상세 */}
               <Route
                 path="/movie/:id"
                 element={
@@ -194,7 +220,7 @@ function App() {
                 }
               />
 
-              {/* 검색 페이지 */}
+              {/* 검색 */}
               <Route path="/search" element={<Search />} />
 
               {/* 없는 주소 → 홈으로 */}
