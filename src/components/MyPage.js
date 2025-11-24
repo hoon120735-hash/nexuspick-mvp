@@ -1,37 +1,27 @@
 // src/components/MyPage.js
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
-function MyPage() {
-  const [points, setPoints] = useState(
-    Number(localStorage.getItem("nexusPoints") || 10000)
-  );
-
-  const [ownedMovies, setOwnedMovies] = useState([]);
-
+function MyPage({ username, points, ownedMovies, onChargePoints }) {
   const [showModal, setShowModal] = useState(false);
   const chargeAmounts = [1000, 5000, 10000];
-
-  // 소장 목록 로딩
-  useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("ownedMovies") || "[]");
-    setOwnedMovies(saved);
-  }, []);
-
-  // 포인트 충전
-  const chargePoints = (amount) => {
-    const newPoints = points + amount;
-    setPoints(newPoints);
-    localStorage.setItem("nexusPoints", newPoints);
-  };
 
   return (
     <div style={{ padding: "20px" }}>
       <h2 style={{ color: "#4f46e5" }}>내 정보</h2>
 
+      {/* 아이디 표시 */}
+      {username && (
+        <p style={{ marginTop: "8px" }}>
+          <strong>아이디:</strong> {username}
+        </p>
+      )}
+
+      {/* 포인트 표시 */}
       <p style={{ marginTop: "15px", fontSize: "18px" }}>
         보유 포인트: <strong>{points.toLocaleString()}P</strong>
       </p>
 
+      {/* 포인트 충전 버튼 */}
       <button
         onClick={() => setShowModal(true)}
         style={{
@@ -47,9 +37,9 @@ function MyPage() {
         💳 포인트 충전하기
       </button>
 
+      {/* 소장한 영화 리스트 */}
       <h3 style={{ marginTop: "30px" }}>🎬 소장한 콘텐츠</h3>
 
-      {/* 3열 그리드 */}
       <div
         style={{
           display: "grid",
@@ -61,9 +51,9 @@ function MyPage() {
         {ownedMovies.length === 0 ? (
           <p>소장한 영화가 없습니다.</p>
         ) : (
-          ownedMovies.map((title, i) => (
+          ownedMovies.map((movie, i) => (
             <div
-              key={i}
+              key={movie.id || i}
               style={{
                 background: "white",
                 border: "1px solid #ddd",
@@ -72,13 +62,18 @@ function MyPage() {
                 textAlign: "center",
               }}
             >
-              {title}
+              <strong>{movie.title}</strong>
+              {movie.price && (
+                <p style={{ marginTop: "6px", color: "#4b5563" }}>
+                  {movie.price.toLocaleString()}P
+                </p>
+              )}
             </div>
           ))
         )}
       </div>
 
-      {/* 충전 팝업 */}
+      {/* 충전 모달 */}
       {showModal && (
         <div
           onClick={() => setShowModal(false)}
@@ -92,6 +87,7 @@ function MyPage() {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
+            zIndex: 999,
           }}
         >
           <div
@@ -109,7 +105,7 @@ function MyPage() {
               <button
                 key={amt}
                 onClick={() => {
-                  chargePoints(amt);
+                  onChargePoints(amt); // App.js 쪽 state 업데이트
                   setShowModal(false);
                 }}
                 style={{
